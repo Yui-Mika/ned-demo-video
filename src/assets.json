@@ -1,0 +1,57 @@
+{
+  "footage": {
+    "scene01": false,
+    "scene02": false,
+    "scene03": false,
+    "scene04": false,
+    "scene05": false,
+    "scene06": false,
+    "scene07": false,
+    "scene08": false,
+    "scene09": false,
+    "scene10": false
+  },
+  "music": false,
+  "vo": {
+    "scene01": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene02": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene03": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene04": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene05": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene06": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene07": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene08": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene09": {
+      "exists": false,
+      "durationSec": null
+    },
+    "scene10": {
+      "exists": false,
+      "durationSec": null
+    }
+  }
+}
