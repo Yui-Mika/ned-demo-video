@@ -3,7 +3,7 @@ import { AbsoluteFill, Html5Audio, interpolate, Sequence, staticFile, useCurrent
 import assets from "./assets.json";
 import { scenes, type Scene } from "./script";
 import { buildCues } from "./cues";
-import { audio, colors, durations, sec, video } from "./tokens";
+import { audio, colors, durations, sec } from "./tokens";
 import { Subtitles } from "./components/Subtitles";
 import type { SceneProps } from "./scenes/common";
 import { Scene01Hook } from "./scenes/Scene01Hook";
@@ -68,11 +68,8 @@ const musicVolume = (f: number) => {
   for (const [a, b] of voWindows) {
     duck = Math.max(duck, interpolate(f, [a - ramp, a, b, b + ramp], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
   }
-  const edges = interpolate(f, [0, sec(0.5), video.durationInFrames - sec(1.2), video.durationInFrames], [0, 1, 1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  return (audio.musicVolume - (audio.musicVolume - audio.musicDuckedVolume) * duck) * edges;
+  // The music bed plays as delivered (no trim, no fades); only the ducking changes its level.
+  return audio.musicVolume - (audio.musicVolume - audio.musicDuckedVolume) * duck;
 };
 
 export const Teaser: React.FC<TeaserProps> = ({ burnSubtitles }) => {

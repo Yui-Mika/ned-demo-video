@@ -66,8 +66,8 @@ export const durations = {
 };
 
 export const audio = {
-  musicVolume: 0.55,
-  musicDuckedVolume: 0.16,
+  musicVolume: 1, // as delivered (about -16 LUFS); only ducked under VO
+  musicDuckedVolume: 0.3,
   voVolume: 1,
 };
 
@@ -78,6 +78,18 @@ export const type = {
   wordmarkSize: 180,
   amountSize: 132,
   subtitleSize: 38,
+};
+
+// Layout (1080p). Text blocks stay inside a 12% top and bottom margin; in scenes
+// with a device frame the headline sits at about 20% from the top, in a left
+// column, and the device takes about 78% of the frame height on the right.
+export const SAFE = { top: 130, bottom: 950 };
+export const layout = {
+  textLeft: 140,
+  headlineTop: 216,
+  phone: { left: 1098, top: 120, w: 702, h: 840 }, // 702 = 390 x 1.8: the full screen width at zoom 1.8
+  laptop: { left: 900, top: 120, w: 900, h: 840 },
+  footage: { top: 300, w: 1280 },
 };
 
 export const sec = (s: number) => Math.round(s * video.fps);

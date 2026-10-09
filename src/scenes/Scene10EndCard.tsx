@@ -4,7 +4,8 @@ import { Backdrop } from "../components/Backdrop";
 import { Chip, useAppear } from "../components/Bits";
 import { endCard, WORDMARK } from "../script";
 import { colors, ease, fonts, gradients, sec, type as typeScale } from "../tokens";
-import { Beats, type SceneProps } from "./common";
+import { KineticLine } from "../components/KineticLine";
+import type { SceneProps } from "./common";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
@@ -79,7 +80,11 @@ export const Scene10EndCard: React.FC<SceneProps> = ({ scene }) => {
           </span>
         </div>
       </AbsoluteFill>
-      <Beats scene={scene} top={360} />
+      <AbsoluteFill style={{ top: 360, height: "auto", alignItems: "center" }}>
+        {scene.beats.map((b, i) => (
+          <KineticLine key={i} {...b} size={typeScale.headlineSize} theme={scene.theme} />
+        ))}
+      </AbsoluteFill>
       <AbsoluteFill style={{ top: 500, height: "auto", flexDirection: "row", justifyContent: "center", alignItems: "flex-start", gap: 40 }}>
         {endCard.links.map((l, i) => (
           <LinkCard key={i} {...l} atSec={2.2 + i * 0.25} />

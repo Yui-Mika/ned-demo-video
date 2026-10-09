@@ -44,7 +44,8 @@ const cursorState = (c: CursorSettings, t: number) => {
 };
 
 // Animated SVG pointer hand: travels with an ease-out, presses (scale 0.92 for
-// 0.15 s) and leaves a faint ripple ring. Targets are fractions of the frame.
+// 0.15 s) and leaves a faint ripple ring. Targets are multiplied by width and
+// height: fractions of the footage frame, or screen pixels with width = height = 1.
 export const Cursor: React.FC<{ settings: CursorSettings; width: number; height: number; size?: number }> = ({
   settings,
   width,
@@ -55,7 +56,8 @@ export const Cursor: React.FC<{ settings: CursorSettings; width: number; height:
   const t = frame / video.fps;
   const { pos, pressed, presses } = cursorState(settings, t);
   const firstMove = Math.max(0, (settings.targets[0]?.atSec ?? 0) - durations.cursorTravel - 0.3);
-  const appear = prog(t, firstMove, firstMove + 0.3);
+  const out = settings.outSec === undefined ? 0 : prog(t, settings.outSec, settings.outSec + 0.25);
+  const appear = prog(t, firstMove, firstMove + 0.3) * (1 - out);
   const x = pos.x * width;
   const y = pos.y * height;
 
@@ -64,7 +66,7 @@ export const Cursor: React.FC<{ settings: CursorSettings; width: number; height:
       {presses.map((p, i) => {
         const r = prog(t, p, p + durations.ripple);
         if (t < p || r >= 1) return null;
-        const d = 18 + r * 90;
+        const d = (18 + r * 90) * (size / 46);
         return (
           <div
             key={i}
@@ -75,7 +77,7 @@ export const Cursor: React.FC<{ settings: CursorSettings; width: number; height:
               width: d,
               height: d,
               borderRadius: "50%",
-              border: "3px solid rgba(255,255,255,0.9)",
+              border: `${3 * (size / 46)}px solid rgba(255,255,255,0.9)`,
               boxShadow: "0 0 18px rgba(184,122,237,0.8)",
               opacity: 0.7 * (1 - r),
             }}

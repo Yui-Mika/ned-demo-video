@@ -11,7 +11,7 @@
     "scene09": false,
     "scene10": false
   },
-  "music": false,
+  "music": true,
   "vo": {
     "scene01": {
       "exists": false,

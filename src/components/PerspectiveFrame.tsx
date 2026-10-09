@@ -6,8 +6,11 @@ export const FRAME_ASPECT = 16 / 9;
 
 type Props = {
   width: number;
+  height?: number; // default: 16:9 of the width
   top: number;
+  left?: number; // default: centred
   offsetX?: number;
+  radius?: number;
   rotateX?: number; // 8 to 20 deg (STYLE)
   rotateY?: number; // -12 to 12 deg
   scale?: number;
@@ -23,8 +26,11 @@ type Props = {
 // behind it. Glow stays outside the recording (never inside app screens).
 export const PerspectiveFrame: React.FC<Props> = ({
   width,
+  height: heightProp,
   top,
+  left: leftProp,
   offsetX = 0,
+  radius = 18,
   rotateX = 12,
   rotateY = 0,
   scale = 1,
@@ -35,8 +41,8 @@ export const PerspectiveFrame: React.FC<Props> = ({
   children,
   outside,
 }) => {
-  const height = Math.round(width / FRAME_ASPECT);
-  const left = (1920 - width) / 2 + offsetX;
+  const height = heightProp ?? Math.round(width / FRAME_ASPECT);
+  const left = (leftProp ?? (1920 - width) / 2) + offsetX;
   return (
     <AbsoluteFill style={{ perspective: 1200, perspectiveOrigin: `${left + width / 2}px ${top + height / 2}px` }}>
       <div
@@ -65,7 +71,7 @@ export const PerspectiveFrame: React.FC<Props> = ({
           style={{
             position: "absolute",
             inset: 0,
-            borderRadius: 18,
+            borderRadius: radius,
             overflow: "hidden",
             backgroundColor: colors.night,
             border: "1.5px solid rgba(255,255,255,0.38)",

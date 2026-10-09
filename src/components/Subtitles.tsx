@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import type { Cue } from "../cues";
-import { fonts, type as typeScale, video } from "../tokens";
+import { fonts, SAFE, type as typeScale, video } from "../tokens";
 
 // Burned-in Vietnamese subtitles (only when the burnSubtitles prop is true).
 export const Subtitles: React.FC<{ cues: Cue[] }> = ({ cues }) => {
@@ -14,7 +14,7 @@ export const Subtitles: React.FC<{ cues: Cue[] }> = ({ cues }) => {
     extrapolateRight: "clamp",
   });
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 34 }}>
+    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 1080 - SAFE.bottom }}>
       <div
         style={{
           maxWidth: 1400,

@@ -1,9 +1,10 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { Backdrop } from "../components/Backdrop";
-import { PerspectiveFrame } from "../components/PerspectiveFrame";
-import { ease, sec, type as typeScale } from "../tokens";
-import { Beats, FrameContent, type SceneProps } from "./common";
+import { ease, SAFE, sec, type as typeScale } from "../tokens";
+import { FootageFrame, TextBlock, type SceneProps } from "./common";
+
+const HOOK = typeScale.hookSize + 16;
 
 // ref-01 look: dim, blurred blank cards drifting in perspective behind the text.
 const GhostCard: React.FC<{ x: number; y: number; w: number; h: number; r: number; speed: number }> = ({ x, y, w, h, r, speed }) => {
@@ -34,10 +35,10 @@ const GhostCard: React.FC<{ x: number; y: number; w: number; h: number; r: numbe
   );
 };
 
+// Hook. Stays abstract (no product UI): the recording if it exists, otherwise
+// only the drifting cards and the two lines, centred inside the safe area.
 export const Scene01Hook: React.FC<SceneProps> = (props) => {
   const frame = useCurrentFrame();
-  const W = 1040;
-  // Fast push-in, then a slow drift so the frame never sits still.
   const push = interpolate(frame, [sec(0.2), sec(1.4), sec(6)], [0.72, 0.95, 1.02], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -46,15 +47,20 @@ export const Scene01Hook: React.FC<SceneProps> = (props) => {
   const enter = interpolate(frame, [sec(0.1), sec(0.9)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill>
-      <Backdrop theme="dark" glow={0.7} />
-      <GhostCard x={-60} y={120} w={420} h={240} r={18} speed={0.25} />
-      <GhostCard x={1560} y={90} w={380} h={260} r={-16} speed={-0.2} />
-      <GhostCard x={40} y={700} w={440} h={260} r={14} speed={0.18} />
-      <GhostCard x={1500} y={720} w={420} h={240} r={-12} speed={-0.25} />
-      <PerspectiveFrame width={W} top={350} rotateX={14} rotateY={-6} scale={push} opacity={enter} glow={0.8}>
-        <FrameContent {...props} width={W} />
-      </PerspectiveFrame>
-      <Beats scene={props.scene} top={56} size={typeScale.hookSize} />
+      <Backdrop theme="dark" glow={0.7} glowY={props.footageExists ? 100 : 70} />
+      <GhostCard x={-60} y={150} w={420} h={240} r={18} speed={0.25} />
+      <GhostCard x={1560} y={150} w={380} h={260} r={-16} speed={-0.2} />
+      <GhostCard x={40} y={680} w={440} h={260} r={14} speed={0.18} />
+      <GhostCard x={1500} y={700} w={420} h={240} r={-12} speed={-0.25} />
+      {props.footageExists ? (
+        <>
+          <FootageFrame {...props} enter={enter} scale={push} rotateX={14} rotateY={-6} />
+          <TextBlock scene={props.scene} placement="top" top={SAFE.top} size={72} />
+        </>
+      ) : (
+        <TextBlock scene={props.scene} placement="top" top={(1080 - 2 * HOOK * 1.12) / 2} size={HOOK} />
+      )}
     </AbsoluteFill>
   );
 };
+
