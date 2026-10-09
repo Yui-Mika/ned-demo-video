@@ -4,6 +4,11 @@
 // Vietnamese VO lines are drafts and need a native check [CONFIRM] (BRIEF 5).
 // Strings inside the product screens come from src/ui/copy.ts (the landing's ported screens).
 
+// Frame rate: the one constant. Frames are always derived (seconds x FPS).
+export const FPS = 60;
+// Cursor timing for every action: travel 1.0 to 1.4 s, then a 0.2 s press.
+export const CURSOR = { travelSec: 1.0, pressSec: 0.2 };
+
 export type Theme = "dark" | "light";
 
 export type FootageSettings = {
@@ -38,21 +43,25 @@ export type CameraKey = { atSec: number; zoom: number; x: number; y: number };
 
 // Real UI shown when public/footage/sceneNN.mp4 is missing. All times in seconds
 // from the scene start; only the fields a scene uses are set.
+// Action budget (each UI scene): at most 3 actions; each has a pre-hold of at least
+// 0.8 s, cursor travel CURSOR.travelSec, a press CURSOR.pressSec, and its result stays
+// at least 1.5 s before the next camera move or action. Screen swaps are 0.5 s
+// cross-dissolves; each screen keeps its own camera.
 export type UiSettings = {
   device: "phone" | "laptop" | "threePhones";
-  camera: CameraKey[];
+  camera: CameraKey[]; // the opening screen (the cursor works in this view)
   cursor: CursorSettings | null;
   slide?: [number, number]; // slider thumb travels over this window (synced with the cursor drag)
-  swapSec?: number; // second screen (locked, released) fades in here
+  swapSec?: number; // the next screen starts its cross-dissolve here
+  swapCamera?: CameraKey[]; // camera of the next screen
+  swap2Sec?: number; // scene 05: the phone (Locked) replaces the laptop here
+  swap2Camera?: CameraKey[];
   typing?: [number, number][]; // scene 03: one window per "Done when" item
   files?: number[]; // scene 06: each file is dropped at this time
   scanned?: number[]; // scene 06: each file's fingerprint shows (after the scan line passes it)
-  checksSec?: number; // scene 06: "Done when" boxes ticked
-  panelSec?: number; // scene 06: wallet panel opens
-  doneSec?: number; // scene 06: submitted view
   scroll?: [number, number]; // scene 09: list scrolls top to end
   light?: [number, number]; // scene 09: NOT YET rows light one after another
-  phones?: { camera: CameraKey[]; cursor: CursorSettings | null; slide?: [number, number] }[]; // scene 08
+  phones?: { camera: CameraKey[] }[]; // scene 08
   active?: [number, number][]; // scene 08: the centre phone moves to the next one over each window
 };
 
@@ -92,24 +101,21 @@ const footage = (n: number, label: string, lengthSec: number): FootageSettings =
 });
 
 // A drag on a slider thumb, timed so the thumb moves exactly over `slide`.
-const PRESS = 0.15; // = durations.cursorPress
 const dragThumb = (x0: number, x1: number, y: number, slide: [number, number]): CursorTarget => ({
   x: x0,
   y,
-  atSec: slide[0] - PRESS,
+  atSec: slide[0] - CURSOR.pressSec,
   action: "drag",
   dragTo: { x: x1, y },
   dragSec: slide[1] - slide[0],
 });
-// Phone slider thumbs (centres, screen px): bottom slider and the sheet slider.
+// Slider thumbs (centres, screen px): phone bottom slider; the wallet panel's slider on the laptop.
 const THUMB = { x0: 45, x1: 345, y: 797 };
-const SHEET_THUMB = { x0: 50, x1: 340, y: 726 };
+const PANEL_THUMB = { x0: 1040, x1: 1298, y: 771 };
 
-const S04_SLIDE: [number, number] = [2.7, 3.5];
-const S05_SLIDE: [number, number] = [1.9, 2.6];
-const S07_SLIDE: [number, number] = [1.1, 1.7];
-const S08_SLIDE_A: [number, number] = [2.9, 3.6];
-const S08_SLIDE_B: [number, number] = [4.7, 5.4];
+const S04_SLIDE: [number, number] = [5.3, 5.8];
+const S05_SLIDE: [number, number] = [4.7, 5.2];
+const S07_SLIDE: [number, number] = [2.0, 2.5];
 
 export const scenes: Scene[] = [
   {
@@ -156,7 +162,7 @@ export const scenes: Scene[] = [
     num: 3,
     name: "Step 1 · Brief",
     startSec: 11,
-    endSec: 16,
+    endSec: 18,
     theme: "light",
     beats: [{ text: "Your client writes one brief.", atSec: 0.2, accentLast: 1 }],
     vo: "Khách hàng viết một bản mô tả. Dấu vân tay của nó được lưu trên chuỗi.",
@@ -164,16 +170,18 @@ export const scenes: Scene[] = [
     footageCursor: null,
     ui: {
       device: "laptop",
+      // Items 1-3 typed in view, a hold, the camera moves to the brief fingerprint,
+      // item 4 is typed while the fingerprint changes, then a hold.
       typing: [
-        [0.5, 1.2],
-        [1.2, 1.9],
-        [1.9, 2.6],
-        [3.4, 4.5],
+        [0.9, 1.7],
+        [1.7, 2.5],
+        [2.5, 3.3],
+        [4.9, 6.0],
       ],
       camera: [
-        { atSec: 0.3, zoom: 2.0, x: 335, y: 1110 },
-        { atSec: 2.6, zoom: 2.0, x: 335, y: 1240 },
-        { atSec: 3.3, zoom: 2.0, x: 1176, y: 400 },
+        { atSec: 0, zoom: 2.0, x: 335, y: 1180 },
+        { atSec: 3.9, zoom: 2.0, x: 335, y: 1180 },
+        { atSec: 4.7, zoom: 2.0, x: 1176, y: 400 },
       ],
       cursor: null,
     },
@@ -182,8 +190,8 @@ export const scenes: Scene[] = [
     id: "scene04",
     num: 4,
     name: "Step 2 · Accept",
-    startSec: 16,
-    endSec: 21,
+    startSec: 18,
+    endSec: 25,
     theme: "dark",
     beats: [{ text: "Read the brief. Choose once.", atSec: 0.2, accentLast: 2 }],
     vo: "Bạn đọc, chấp nhận, và chọn một lần nơi nhận tiền.",
@@ -197,16 +205,18 @@ export const scenes: Scene[] = [
     },
     ui: {
       device: "phone",
+      // Contract detail: tap "Accept and choose where earnings go" (travel 0.9-1.9, press),
+      // dissolve to the accept screen (VND destination, 2.1-2.6), hold, slide to accept
+      // (travel 4.1-5.1, press, drag 5.3-5.8), hold the result. One framing shows the
+      // button, the VND card and the slider, so the camera never moves between actions.
       slide: S04_SLIDE,
-      camera: [
-        { atSec: 0, zoom: 1.9, x: 195, y: 330 },
-        { atSec: 1.6, zoom: 1.9, x: 195, y: 330 },
-        { atSec: 2.3, zoom: 1.8, x: 195, y: 650 },
-      ],
+      swapSec: 2.1,
+      camera: [{ atSec: 0, zoom: 1.75, x: 195, y: 566 }],
+      swapCamera: [{ atSec: 0, zoom: 1.75, x: 195, y: 566 }],
       cursor: {
-        from: { x: 330, y: 560 },
+        from: { x: 330, y: 480 },
         targets: [
-          { x: 200, y: 360, atSec: 1.1, action: "click" },
+          { x: 195, y: 792, atSec: 1.9, action: "click" },
           dragThumb(THUMB.x0, THUMB.x1, THUMB.y, S04_SLIDE),
         ],
       },
@@ -216,8 +226,8 @@ export const scenes: Scene[] = [
     id: "scene05",
     num: 5,
     name: "Step 3 · Lock",
-    startSec: 21,
-    endSec: 26,
+    startSec: 25,
+    endSec: 32,
     theme: "light",
     beats: [{ text: "Your client locks it before you start.", atSec: 0.2, accentLast: 2 }],
     vo: "Khách khóa toàn bộ số tiền trước khi bạn bắt đầu.",
@@ -230,21 +240,26 @@ export const scenes: Scene[] = [
       ],
     },
     ui: {
-      device: "phone",
+      device: "laptop",
+      // Workspace: tap "Lock in wallet" (travel 0.8-1.8, press), the wallet panel opens
+      // (dissolve 2.0-2.5), slide to lock in the panel (travel 3.5-4.5, press, drag
+      // 4.7-5.2), then your phone shows Locked (device dissolve 5.2-5.7, held to the end).
       slide: S05_SLIDE,
-      swapSec: 2.9,
-      camera: [
-        { atSec: 0, zoom: 1.8, x: 195, y: 200 },
-        { atSec: 0.9, zoom: 1.8, x: 195, y: 200 },
-        { atSec: 1.5, zoom: 1.8, x: 195, y: 650 },
-        { atSec: 2.8, zoom: 1.8, x: 195, y: 650 },
-        { atSec: 2.9, zoom: 1.7, x: 195, y: 260 },
-        { atSec: 5.0, zoom: 1.8, x: 195, y: 250 },
+      swapSec: 2.0,
+      camera: [{ atSec: 0, zoom: 1.2, x: 1100, y: 460 }],
+      swapCamera: [{ atSec: 0, zoom: 1.2, x: 1100, y: 460 }],
+      swap2Sec: 5.2,
+      swap2Camera: [
+        { atSec: 5.2, zoom: 1.8, x: 195, y: 250 },
+        { atSec: 7.0, zoom: 1.85, x: 195, y: 250 },
       ],
       cursor: {
-        from: { x: 330, y: 560 },
-        targets: [dragThumb(THUMB.x0, THUMB.x1, THUMB.y, S05_SLIDE)],
-        outSec: 2.8,
+        from: { x: 1330, y: 640 },
+        targets: [
+          { x: 1256, y: 429, atSec: 1.8, action: "click" },
+          dragThumb(PANEL_THUMB.x0, PANEL_THUMB.x1, PANEL_THUMB.y, S05_SLIDE),
+        ],
+        outSec: 5.2,
       },
     },
   },
@@ -252,8 +267,8 @@ export const scenes: Scene[] = [
     id: "scene06",
     num: 6,
     name: "Step 4 · Submit",
-    startSec: 26,
-    endSec: 31,
+    startSec: 32,
+    endSec: 39,
     theme: "dark",
     beats: [{ text: "Submit before the deadline.", atSec: 0.2, accentLast: 1 }],
     vo: "Nộp trước hạn. Thời gian và dấu vân tay được ghi lại.",
@@ -265,31 +280,24 @@ export const scenes: Scene[] = [
         { x: 0.78, y: 0.66, atSec: 4.0, action: "click" },
       ],
     },
-    scanAtSec: 0.6,
+    scanAtSec: 1.4,
     ui: {
       device: "laptop",
-      files: [0.3, 0.5],
-      scanned: [1.65, 1.85],
-      checksSec: 2.0,
-      panelSec: 3.0,
-      doneSec: 3.9,
-      camera: [
-        { atSec: 0, zoom: 2.0, x: 335, y: 625 },
-        { atSec: 2.0, zoom: 2.0, x: 335, y: 625 },
-        { atSec: 2.5, zoom: 2.0, x: 1176, y: 860 },
-        { atSec: 3.0, zoom: 2.0, x: 1176, y: 860 },
-        { atSec: 3.3, zoom: 1.8, x: 1176, y: 560 },
-        { atSec: 3.9, zoom: 1.3, x: 450, y: 330 },
-        { atSec: 4.3, zoom: 1.3, x: 450, y: 330 },
-        { atSec: 4.8, zoom: 2.4, x: 620, y: 395 }, // "On time" 12 px x 2.4 = 29 px
+      // Wide view of the submit page: files dropped (0.8, 1.1), the scan band passes
+      // (1.4-2.9) and leaves the fingerprints, hold, tap Submit (travel 3.9-4.9, press),
+      // dissolve to "Submitted · in review" / "On time" (5.1-5.6) with a slow push-in, held.
+      files: [0.8, 1.1],
+      scanned: [2.3, 2.4],
+      swapSec: 5.1,
+      camera: [{ atSec: 0, zoom: 0.72, x: 720, y: 640 }],
+      swapCamera: [
+        { atSec: 5.1, zoom: 1.0, x: 465, y: 330 },
+        { atSec: 7.2, zoom: 1.28, x: 465, y: 330 },
       ],
       cursor: {
-        from: { x: 1300, y: 980 },
-        targets: [
-          { x: 1176, y: 877, atSec: 2.8, action: "click" },
-          { x: 1247, y: 696, atSec: 3.6, action: "click" },
-        ],
-        outSec: 3.9,
+        from: { x: 1330, y: 1060 },
+        targets: [{ x: 1176, y: 877, atSec: 4.9, action: "click" }],
+        outSec: 5.1,
       },
     },
   },
@@ -297,8 +305,8 @@ export const scenes: Scene[] = [
     id: "scene07",
     num: 7,
     name: "Step 5 · Release",
-    startSec: 31,
-    endSec: 36,
+    startSec: 39,
+    endSec: 46,
     theme: "dark",
     beats: [],
     vo: "Khách duyệt, phần đó được chuyển đến bạn. Ví dụ, ước tính.",
@@ -311,19 +319,19 @@ export const scenes: Scene[] = [
     },
     ui: {
       device: "phone",
+      // Review: slide to release (travel 0.8-1.8, press, drag 2.0-2.5), dissolve to
+      // "Released to Vinh" (2.5-3.0), then the count-up (see `release`), held.
       slide: S07_SLIDE,
-      swapSec: 1.9,
-      camera: [
-        { atSec: 0, zoom: 1.8, x: 195, y: 330 },
-        { atSec: 0.4, zoom: 1.8, x: 195, y: 330 },
-        { atSec: 0.9, zoom: 1.8, x: 195, y: 650 },
-        { atSec: 1.85, zoom: 1.8, x: 195, y: 650 },
-        { atSec: 1.9, zoom: 1.8, x: 195, y: 250 },
+      swapSec: 2.5,
+      camera: [{ atSec: 0, zoom: 1.7, x: 195, y: 580 }],
+      swapCamera: [
+        { atSec: 2.5, zoom: 1.8, x: 195, y: 260 },
+        { atSec: 7.0, zoom: 1.85, x: 195, y: 260 },
       ],
       cursor: {
-        from: { x: 330, y: 560 },
+        from: { x: 330, y: 470 },
         targets: [dragThumb(THUMB.x0, THUMB.x1, THUMB.y, S07_SLIDE)],
-        outSec: 1.9,
+        outSec: 2.5,
       },
     },
   },
@@ -331,12 +339,12 @@ export const scenes: Scene[] = [
     id: "scene08",
     num: 8,
     name: "If someone goes quiet",
-    startSec: 36,
-    endSec: 44,
+    startSec: 46,
+    endSec: 54,
     theme: "dark",
     beats: [{ text: "After the deadline, anyone can release.", atSec: 0.3, accentLast: 2 }],
     small: [{ text: "Unless the client requests changes in time.", atSec: 1.4 }],
-    chips: [{ text: "No neutral arbiter yet.", atSec: 6.0 }],
+    chips: [{ text: "No neutral arbiter yet.", atSec: 6.2 }],
     vo: "Hết hạn duyệt mà không ai trả lời? Ai cũng có thể bấm Release now, trừ khi khách đã yêu cầu sửa đúng hạn. Trễ hạn nộp? Tiền được hoàn lại cho khách.",
     footage: footage(8, "Ch08 goes quiet", 8),
     footageCursor: {
@@ -350,36 +358,15 @@ export const scenes: Scene[] = [
       device: "threePhones",
       camera: [],
       cursor: null,
+      // About 2.5 s per phone: Release now, then Refund now, then Refunded (no cursor).
       active: [
-        [3.8, 4.3],
-        [5.7, 6.2],
+        [2.8, 3.3],
+        [5.6, 6.1],
       ],
       phones: [
-        {
-          // A · Release now
-          slide: S08_SLIDE_A,
-          camera: [
-            { atSec: 0, zoom: 1.8, x: 195, y: 290 },
-            { atSec: 2.0, zoom: 1.8, x: 195, y: 290 },
-            { atSec: 2.6, zoom: 1.8, x: 195, y: 640 },
-          ],
-          cursor: { from: { x: 300, y: 560 }, targets: [dragThumb(SHEET_THUMB.x0, SHEET_THUMB.x1, SHEET_THUMB.y, S08_SLIDE_A)], outSec: 4.0 },
-        },
-        {
-          // B · Refund now
-          slide: S08_SLIDE_B,
-          camera: [
-            { atSec: 0, zoom: 1.8, x: 195, y: 360 },
-            { atSec: 4.2, zoom: 1.8, x: 195, y: 360 },
-            { atSec: 4.6, zoom: 1.8, x: 195, y: 640 },
-          ],
-          cursor: { from: { x: 300, y: 560 }, targets: [dragThumb(SHEET_THUMB.x0, SHEET_THUMB.x1, SHEET_THUMB.y, S08_SLIDE_B)], outSec: 5.8 },
-        },
-        {
-          // C · Refunded
-          camera: [{ atSec: 0, zoom: 1.8, x: 195, y: 250 }],
-          cursor: null,
-        },
+        { camera: [{ atSec: 0, zoom: 1.8, x: 195, y: 380 }] }, // A · Release now
+        { camera: [{ atSec: 0, zoom: 1.8, x: 195, y: 430 }] }, // B · Refund now
+        { camera: [{ atSec: 0, zoom: 1.8, x: 195, y: 260 }] }, // C · Refunded
       ],
     },
   },
@@ -387,8 +374,8 @@ export const scenes: Scene[] = [
     id: "scene09",
     num: 9,
     name: "Honest status",
-    startSec: 44,
-    endSec: 50,
+    startSec: 54,
+    endSec: 60,
     theme: "light",
     beats: [{ text: "What works today, and what comes next.", atSec: 0.2, accentLast: 3 }],
     chips: [{ text: DEMO_CHIP, atSec: 1.2 }],
@@ -408,8 +395,8 @@ export const scenes: Scene[] = [
     id: "scene10",
     num: 10,
     name: "End card",
-    startSec: 50,
-    endSec: 60,
+    startSec: 60,
+    endSec: 69,
     theme: "dark",
     beats: [{ text: "See a milestone released.", atSec: 1.2, accentLast: 1 }],
     chips: [{ text: DEMO_CHIP, atSec: 3.4 }],
@@ -431,8 +418,10 @@ export const release = {
   toSuffix: " VND",
   estimateNote: "example, estimated",
   simulatedNote: "Bank transfer simulated in this demo.",
-  pillAtSec: 2.2, // pill with the USDC amount leaves the phone
-  crossAtSec: 2.8, // pill crosses the seam and the count starts
+  pillAtSec: 2.8, // pill with the USDC amount leaves the phone
+  crossAtSec: 3.0, // pill crosses the seam
+  countStartSec: 3.3, // the count-up starts (scene time)
+  countSec: 2.5, // ... and reaches the full amount after this long
 };
 
 // Scene 10: end card (BRIEF 7.2). Two link cards, no third card.

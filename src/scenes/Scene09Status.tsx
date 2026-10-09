@@ -1,12 +1,11 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { Backdrop } from "../components/Backdrop";
-import { durations, sec } from "../tokens";
+import { durations, ease, sec } from "../tokens";
 import { DisclosuresScreen } from "../ui/phone/DisclosuresScreen";
-import { DeviceFrame, FootageFrame, TextBlock, frameMode, FOOTAGE_HEADLINE_TOP, useSceneSec, type SceneProps } from "./common";
+import { DeviceFrame, FootageFrame, TextBlock, frameMode, windowProgress, FOOTAGE_HEADLINE_TOP, useSceneSec, type SceneProps } from "./common";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
-const linear = (t: number, w?: [number, number]) => (w ? interpolate(t, w, [0, 1], clamp) : 0);
 
 // Honest status. Light scene (ref-11 palette) but FADE ONLY: no blur or slide on
 // the disclosure text (BRIEF 5, SPEC 14.4 wins over the reference's blur reveal).
@@ -16,14 +15,14 @@ export const Scene09Status: React.FC<SceneProps> = (props) => {
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);
-  const fade = interpolate(frame, [sec(0.4), sec(0.4 + durations.fade * 2)], [0, 1], clamp);
+  const fade = interpolate(frame, [sec(0.4), sec(0.4 + durations.fade * 2)], [0, 1], { ...clamp, easing: ease });
 
   if (mode === "ui" && scene.ui) {
     return (
       <AbsoluteFill>
         <Backdrop theme="light" />
         <DeviceFrame kind="phone" camera={scene.ui.camera} enter={fade} rise={0} rotateX={6} rotateY={-6} glow={0.7}>
-          <DisclosuresScreen scroll={linear(t, scene.ui.scroll)} light={linear(t, scene.ui.light)} />
+          <DisclosuresScreen scroll={windowProgress(t, scene.ui.scroll)} light={windowProgress(t, scene.ui.light)} />
         </DeviceFrame>
         <TextBlock scene={scene} placement="column" mode="fade" />
       </AbsoluteFill>

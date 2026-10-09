@@ -10,6 +10,8 @@ import { ContractAnyoneActionScreen } from "../ui/phone/ContractAnyoneActionScre
 import { DisclosuresScreen } from "../ui/phone/DisclosuresScreen";
 import { WebContractNewScreen } from "../ui/web/WebContractNewScreen";
 import { WebSubmitScreen } from "../ui/web/WebSubmitScreen";
+import { WebWorkspaceScreen } from "../ui/web/WebWorkspaceScreen";
+import { ContractDetailScreen } from "../ui/phone/ContractDetailScreen";
 
 // Dev only: every screen flat at native size, for measuring element positions.
 const box = (x: number, y: number, el: React.ReactNode, id: string) => (
@@ -31,5 +33,9 @@ export const Atlas: React.FC = () => (
     {box(1500, 900, <WebSubmitScreen state={{ links: 2, draft: "", files: 2, scanned: 2, checks: 4, panel: "closed", done: false }} width={1440} height={2600} />, "submit")}
     {box(3000, 900, <WebSubmitScreen state={{ links: 2, draft: "", files: 2, scanned: 2, checks: 4, panel: "sign", done: false }} width={1440} height={900} />, "submitSign")}
     {box(3000, 1850, <WebSubmitScreen state={{ links: 2, draft: "", files: 2, scanned: 2, checks: 4, panel: "closed", done: true }} width={1440} height={900} />, "submitDone")}
+    {box(0, 2700, <ContractDetailScreen variant="vinhNew" />, "detailNew")}
+    {box(400, 2700, <ContractDetailScreen variant="vinhAccepted" />, "detailAccepted")}
+    {box(900, 2700, <WebWorkspaceScreen width={1440} height={900} panel={null} />, "workspace")}
+    {box(2400, 2700, <WebWorkspaceScreen width={1440} height={900} panel={<ContractLockScreen />} />, "workspacePanel")}
   </AbsoluteFill>
 );

@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { colors } from "../tokens";
+import { colors, video } from "../tokens";
+import { useDrift } from "../scenes/time";
 import type { Theme } from "../script";
 
 // Landing-layer background. Dark: #06060E with a purple glow; light: #F4F4F6 to
@@ -12,8 +13,10 @@ export const Backdrop: React.FC<{ theme: Theme; glow?: number; glowY?: number }>
   glowY = 100,
 }) => {
   const frame = useCurrentFrame();
-  const pulse = 1 + 0.06 * Math.sin(frame / 22);
-  const drift = 4 * Math.sin(frame / 37);
+  const t = frame / video.fps;
+  // Smooth glow breathing (seconds, so it is the same at any frame rate) plus the scene's slow drift.
+  const pulse = (1 + 0.06 * Math.sin(t * 1.36)) * useDrift();
+  const drift = 4 * Math.sin(t * 0.81);
 
   if (theme === "light") {
     return (

@@ -1,12 +1,15 @@
 import React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
 import type { CursorSettings } from "../script";
-import { durations, ease, video } from "../tokens";
+import { durations, ease, easeTravel, video } from "../tokens";
 
 type Pt = { x: number; y: number };
 const lerp = (a: Pt, b: Pt, p: number): Pt => ({ x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p });
-const prog = (t: number, a: number, b: number) =>
-  interpolate(t, [a, b], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease });
+const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+// Travel and drags: cubic-bezier(0.4, 0, 0.2, 1). Fades and ripples: the entrance curve.
+const travel = (t: number, a: number, b: number) => interpolate(t, [a, b], [0, 1], { ...clamp, easing: easeTravel });
+const prog = (t: number, a: number, b: number) => interpolate(t, [a, b], [0, 1], { ...clamp, easing: ease });
+const RELEASE = 0.15; // the press lets go over this long after a drag
 
 // Where the cursor is, whether it is pressed, and when clicks happened, at time t (s).
 const cursorState = (c: CursorSettings, t: number) => {
@@ -20,31 +23,34 @@ const cursorState = (c: CursorSettings, t: number) => {
     presses.push(tg.atSec);
     if (t < travelStart) break;
     if (t < tg.atSec) {
-      pos = lerp(pos, target, prog(t, travelStart, tg.atSec));
+      pos = lerp(pos, target, travel(t, travelStart, tg.atSec));
       break;
     }
     pos = target;
     const pressEnd = tg.atSec + durations.cursorPress;
     if (tg.action === "drag" && tg.dragTo) {
       const dragEnd = pressEnd + (tg.dragSec ?? 0.6);
-      if (t < dragEnd + 0.1) pressed = Math.max(pressed, prog(t, tg.atSec, pressEnd));
+      const down = travel(t, tg.atSec, pressEnd);
+      const up = travel(t, dragEnd, dragEnd + RELEASE);
+      pressed = Math.max(pressed, down * (1 - up));
       if (t < pressEnd) break;
       if (t < dragEnd) {
-        pos = lerp(target, tg.dragTo, prog(t, pressEnd, dragEnd));
+        pos = lerp(target, tg.dragTo, travel(t, pressEnd, dragEnd));
         break;
       }
       pos = tg.dragTo;
-      free = dragEnd + 0.1;
+      free = dragEnd + RELEASE;
     } else {
-      if (t < pressEnd) pressed = interpolate(t, [tg.atSec, tg.atSec + 0.05, pressEnd], [0, 1, 0]);
+      // A smooth press: down and back up over the press time.
+      if (t >= tg.atSec && t < pressEnd) pressed = Math.sin((Math.PI * (t - tg.atSec)) / durations.cursorPress);
       free = pressEnd;
     }
   }
   return { pos, pressed, presses };
 };
 
-// Animated SVG pointer hand: travels with an ease-out, presses (scale 0.92 for
-// 0.15 s) and leaves a faint ripple ring. Targets are multiplied by width and
+// Animated SVG pointer hand: travels with cubic-bezier(0.4, 0, 0.2, 1), presses
+// (scale 0.92 for 0.2 s) and leaves a faint ripple ring. Targets are multiplied by width and
 // height: fractions of the footage frame, or screen pixels with width = height = 1.
 export const Cursor: React.FC<{ settings: CursorSettings; width: number; height: number; size?: number }> = ({
   settings,

@@ -1,6 +1,8 @@
 // Design tokens: colours, fonts, easing and motion durations.
-// Scene start/end times live in script.ts (one place for wording and timing).
+// Scene start/end times and the frame rate live in script.ts (one place for wording and timing).
+// Every duration is in seconds; frames are derived with sec() (seconds x FPS).
 import { Easing } from "remotion";
+import { CURSOR, FPS } from "./script";
 import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
 import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
 import { loadFont as loadSpaceMono } from "@remotion/google-fonts/SpaceMono";
@@ -16,8 +18,7 @@ export const fonts = {
 export const video = {
   width: 1920,
   height: 1080,
-  fps: 30,
-  durationInFrames: 1800,
+  fps: FPS,
 };
 
 export const colors = {
@@ -46,8 +47,12 @@ export const gradients = {
   glassPill: `linear-gradient(135deg, ${colors.purple} 0%, ${colors.orchid} 100%)`,
 };
 
+// Entrances (things arriving and settling): cubic-bezier(0.16, 1, 0.3, 1).
 export const ease = Easing.bezier(0.16, 1, 0.3, 1);
+// Travel (camera, cursor, slider thumb, device tilt, count-up): cubic-bezier(0.4, 0, 0.2, 1).
+export const easeTravel = Easing.bezier(0.4, 0, 0.2, 1);
 export const EASE_CURVE = [0.16, 1, 0.3, 1] as const;
+export const TRAVEL_CURVE = [0.4, 0, 0.2, 1] as const;
 
 // Motion durations, in seconds
 export const durations = {
@@ -55,13 +60,15 @@ export const durations = {
   wordStagger: 0.09, // delay between words
   lineExit: 0.4,
   fade: 0.5,
-  crossfade: 0.4, // soft dissolve between scenes
-  frameEnter: 0.9, // perspective frame rising in
-  cursorTravel: 0.8,
-  cursorPress: 0.15,
-  ripple: 0.5,
+  crossfade: 0.5, // soft dissolve between scenes
+  screenSwap: 0.5, // cross-dissolve between two screens (outgoing out, incoming in)
+  frameEnter: 0.8, // perspective frame rising in
+  cursorTravel: CURSOR.travelSec,
+  cursorPress: CURSOR.pressSec,
+  ripple: 0.6,
   scanPass: 1.5,
-  count: 1.5,
+  count: 2.5, // the VND count-up
+  drift: 0.04, // slow camera drift: device scale 1.00 to 1.04 over each scene
   duckRamp: 0.2,
 };
 
@@ -87,7 +94,7 @@ export const SAFE = { top: 130, bottom: 950 };
 export const layout = {
   textLeft: 140,
   headlineTop: 216,
-  phone: { left: 1098, top: 120, w: 702, h: 840 }, // 702 = 390 x 1.8: the full screen width at zoom 1.8
+  phone: { left: 1098, top: 108, w: 702, h: 864 }, // 80% of the frame height; 702 = 390 x 1.8: the full screen width at zoom 1.8
   laptop: { left: 900, top: 120, w: 900, h: 840 },
   footage: { top: 300, w: 1280 },
 };

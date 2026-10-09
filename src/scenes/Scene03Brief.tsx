@@ -5,7 +5,7 @@ import { durations, ease, layout, sec } from "../tokens";
 import { copy } from "../ui/copy";
 import { WebContractNewScreen } from "../ui/web/WebContractNewScreen";
 import type { BriefState } from "../ui/state";
-import { DeviceFrame, FootageFrame, TextBlock, frameMode, FOOTAGE_HEADLINE_TOP, useSceneSec, type SceneProps } from "./common";
+import { DeviceFrame, FootageFrame, TextBlock, frameMode, windowProgress, FOOTAGE_HEADLINE_TOP, useSceneSec, type SceneProps } from "./common";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const ITEMS = copy.web.contractNew.milestones.list[0].crit;
@@ -30,7 +30,7 @@ export const Scene03Brief: React.FC<SceneProps> = (props) => {
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);
   const rise = interpolate(frame, [sec(0.2), sec(0.2 + durations.frameEnter)], [0, 1], { ...clamp, easing: ease });
-  const dolly = interpolate(frame, [0, sec(5)], [0, 1], clamp);
+  const dolly = windowProgress(t, [0, scene.endSec - scene.startSec]); // slow eased tilt over the scene
 
   if (mode === "ui" && scene.ui) {
     return (

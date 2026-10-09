@@ -3,9 +3,10 @@ import { AbsoluteFill, Html5Audio, interpolate, Sequence, staticFile, useCurrent
 import assets from "./assets.json";
 import { scenes, type Scene } from "./script";
 import { buildCues } from "./cues";
-import { audio, colors, durations, sec } from "./tokens";
+import { audio, colors, durations, ease, sec } from "./tokens";
 import { Subtitles } from "./components/Subtitles";
 import type { SceneProps } from "./scenes/common";
+import { SceneLength } from "./scenes/time";
 import { Scene01Hook } from "./scenes/Scene01Hook";
 import { Scene02Wordmark } from "./scenes/Scene02Wordmark";
 import { Scene03Brief } from "./scenes/Scene03Brief";
@@ -46,11 +47,13 @@ const XF = sec(durations.crossfade);
 const SceneSlot: React.FC<{ scene: Scene; first: boolean }> = ({ scene, first }) => {
   const frame = useCurrentFrame();
   const Comp = components[scene.id];
-  const opacity = first ? 1 : interpolate(frame, [0, XF], [0, 1], { extrapolateRight: "clamp" });
+  const opacity = first ? 1 : interpolate(frame, [0, XF], [0, 1], { extrapolateRight: "clamp", easing: ease });
   return (
-    <AbsoluteFill style={{ opacity }}>
-      <Comp scene={scene} footageExists={Boolean(found.footage[scene.id])} />
-    </AbsoluteFill>
+    <SceneLength.Provider value={scene.endSec - scene.startSec}>
+      <AbsoluteFill style={{ opacity }}>
+        <Comp scene={scene} footageExists={Boolean(found.footage[scene.id])} />
+      </AbsoluteFill>
+    </SceneLength.Provider>
   );
 };
 

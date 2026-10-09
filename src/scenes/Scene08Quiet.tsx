@@ -24,14 +24,14 @@ export const Scene08Quiet: React.FC<SceneProps> = (props) => {
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);
   const swell = interpolate(frame, [0, sec(1.2), sec(8)], [0.4, 1.3, 1.0], { ...clamp, easing: ease });
-  const drift = interpolate(frame, [0, sec(8)], [0, 1], clamp);
+  const drift = windowProgress(t, [0, scene.endSec - scene.startSec]); // slow eased tilt
 
   if (mode === "ui" && scene.ui?.phones) {
     const phones = scene.ui.phones;
     const screens = [
-      (p: number) => <ContractAnyoneActionScreen kind="release" slide={p} />,
-      (p: number) => <ContractAnyoneActionScreen kind="refund" slide={p} />,
-      () => <MilestoneReleasedScreen variant="refund" />,
+      <ContractAnyoneActionScreen key="a" kind="release" />,
+      <ContractAnyoneActionScreen key="b" kind="refund" />,
+      <MilestoneReleasedScreen key="c" variant="refund" />,
     ];
     // Continuous index of the centre phone: 0, then 1, then 2.
     const active = (scene.ui.active ?? []).reduce((n, w) => n + windowProgress(t, w), 0);
@@ -49,7 +49,6 @@ export const Scene08Quiet: React.FC<SceneProps> = (props) => {
               <DeviceFrame
                 kind="phone"
                 camera={p.camera}
-                cursor={p.cursor}
                 enter={enter}
                 rise={420}
                 rotateX={8 - 3 * drift}
@@ -58,7 +57,7 @@ export const Scene08Quiet: React.FC<SceneProps> = (props) => {
                 glow={0.8 * (1 - 0.6 * d)}
                 box={{ left: 960 - W / 2 + slot * STEP, top: TOP, w: W, h: H }}
               >
-                {screens[i](windowProgress(t, p.slide))}
+                {screens[i]}
               </DeviceFrame>
             </div>
           );

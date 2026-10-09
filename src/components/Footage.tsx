@@ -30,7 +30,7 @@ export const Footage: React.FC<{ sceneNum: number; settings: FootageSettings; ex
 
 const Placeholder: React.FC<{ sceneNum: number; settings: FootageSettings }> = ({ sceneNum, settings }) => {
   const frame = useCurrentFrame();
-  const x = 50 + 18 * Math.sin(frame / 40);
+  const x = 50 + 18 * Math.sin((frame / video.fps) * 0.75);
   const nn = String(sceneNum).padStart(2, "0");
   return (
     <AbsoluteFill

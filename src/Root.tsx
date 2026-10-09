@@ -11,8 +11,8 @@ export const RemotionRoot: React.FC = () => (
   <>
   {/* Dev only (not rendered by the npm scripts): UiAtlas = every screen flat, for measuring cursor and camera
       targets; Probe = Teaser frames listed in src/dev/Probe.tsx. */}
-  <Composition id="UiAtlas" component={Atlas} width={4500} height={3600} fps={30} durationInFrames={1} />
-  <Composition id="Probe" component={Probe} width={1920} height={1080} fps={30} durationInFrames={PROBE.length} />
+  <Composition id="UiAtlas" component={Atlas} width={4500} height={4500} fps={video.fps} durationInFrames={1} />
+  <Composition id="Probe" component={Probe} width={1920} height={1080} fps={video.fps} durationInFrames={PROBE.length} />
   <Composition
     id="Teaser"
     component={Teaser}

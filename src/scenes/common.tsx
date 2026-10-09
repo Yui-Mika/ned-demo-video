@@ -7,7 +7,8 @@ import { Cursor } from "../components/Cursor";
 import { PerspectiveFrame, FRAME_ASPECT } from "../components/PerspectiveFrame";
 import { DeviceView, cameraAt } from "../components/DeviceView";
 import { Chip, useAppear } from "../components/Bits";
-import { colors, ease, fonts, layout, type as typeScale, video } from "../tokens";
+import { colors, durations, easeTravel, fonts, layout, type as typeScale, video } from "../tokens";
+import { useDrift } from "./time";
 
 export type SceneProps = { scene: Scene; footageExists: boolean };
 
@@ -19,10 +20,10 @@ export const frameMode = (scene: Scene, footageExists: boolean): FrameMode =>
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
-// Eased 0..1 progress of a [start, end] window at time t (s). Used for sliders,
-// so the thumb moves exactly with the cursor drag (same ease).
+// Eased 0..1 progress of a [start, end] window at time t (s), with the travel curve.
+// Used for sliders (the thumb moves exactly with the cursor drag), scrolls and the carousel.
 export const windowProgress = (t: number, w?: [number, number]) =>
-  w ? interpolate(t, w, [0, 1], { ...clamp, easing: ease }) : 0;
+  w ? interpolate(t, w, [0, 1], { ...clamp, easing: easeTravel }) : 0;
 
 export const useSceneSec = () => useCurrentFrame() / video.fps;
 
@@ -114,22 +115,38 @@ type Motion = {
   rise?: number; // px the frame travels up while entering
 };
 
+export type ScreenLayer = { node: React.ReactNode; camera: CameraKey[]; opacity?: number };
+
+// 0..1 progress of a 0.5 s screen swap starting at `at` (s).
+export const swapProgress = (t: number, at?: number) =>
+  at === undefined ? 0 : interpolate(t, [at, at + durations.screenSwap], [0, 1], { ...clamp, easing: easeTravel });
+
 // Phone or laptop UI in a tilted frame on the right: a zoom crop of the flat screen.
+// `layers`: screens stacked in order, each with its own camera. A swap is the next
+// layer fading in over the previous one; both are opaque screens, so this gives the
+// same pixels as a cross-dissolve (outgoing out while incoming in) with no dip to the
+// frame colour. The previous layer is dropped once the next is fully in.
 export const DeviceFrame: React.FC<
   Motion & {
     kind: "phone" | "laptop";
-    camera: CameraKey[];
+    camera: CameraKey[]; // the cursor's view (and the screen's, when `children` is used)
+    layers?: ScreenLayer[];
     cursor?: CursorSettings | null;
-    children: React.ReactNode; // the screen at native size
+    children?: React.ReactNode; // a single screen at native size
     overlay?: React.ReactNode; // in window coordinates (scan line)
     outside?: React.ReactNode;
     box?: { left: number; top: number; w: number; h: number };
   }
-> = ({ kind, camera, cursor, children, overlay, outside, box, enter = 1, rotateX = 6, rotateY = -7, scale = 1, glow = 1, rise = 120 }) => {
+> = ({ kind, camera, layers, cursor, children, overlay, outside, box, enter = 1, rotateX = 6, rotateY = -7, scale = 1, glow = 1, rise = 120 }) => {
   const t = useSceneSec();
+  const drift = useDrift();
   const b = box ?? (kind === "phone" ? layout.phone : layout.laptop);
   const native = kind === "phone" ? { w: 390, h: 844 } : { w: 1440, h: 2600 };
   const zoom = cameraAt(camera, t).zoom;
+  const list: ScreenLayer[] = layers ?? [{ node: children, camera }];
+  // Skip layers fully covered by a later, fully opaque one.
+  const firstVisible = Math.max(0, ...list.map((l, i) => ((l.opacity ?? 1) >= 1 ? i : 0)));
+  const win = { w: b.w, h: b.h };
   return (
     <PerspectiveFrame
       width={b.w}
@@ -139,16 +156,28 @@ export const DeviceFrame: React.FC<
       radius={kind === "phone" ? 44 : 20}
       rotateX={rotateX}
       rotateY={rotateY}
-      scale={scale}
+      scale={scale * drift}
       translateY={(1 - enter) * rise}
       opacity={enter}
       glow={glow * enter}
       outside={outside}
     >
-      <DeviceView native={native} window={{ w: b.w, h: b.h }} camera={camera}>
-        {children}
-        {cursor ? <Cursor settings={cursor} width={1} height={1} size={46 / zoom} /> : null}
-      </DeviceView>
+      {list.map((l, i) =>
+        i < firstVisible || (l.opacity ?? 1) <= 0 ? null : (
+          <div key={i} style={{ position: "absolute", inset: 0, isolation: "isolate", opacity: l.opacity ?? 1 }}>
+            <DeviceView native={native} window={win} camera={l.camera}>
+              {l.node}
+            </DeviceView>
+          </div>
+        ),
+      )}
+      {cursor ? (
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          <DeviceView native={native} window={win} camera={camera} transparent>
+            <Cursor settings={cursor} width={1} height={1} size={46 / zoom} />
+          </DeviceView>
+        </div>
+      ) : null}
       {overlay}
     </PerspectiveFrame>
   );
@@ -167,6 +196,7 @@ export const FootageFrame: React.FC<SceneProps & Motion & { children?: React.Rea
   glow = 1,
   rise = 160,
 }) => {
+  const drift = useDrift();
   const W = layout.footage.w;
   const H = Math.round(W / FRAME_ASPECT);
   return (
@@ -175,7 +205,7 @@ export const FootageFrame: React.FC<SceneProps & Motion & { children?: React.Rea
       top={layout.footage.top}
       rotateX={rotateX}
       rotateY={rotateY}
-      scale={scale}
+      scale={scale * drift}
       translateY={(1 - enter) * rise}
       opacity={enter}
       glow={glow * enter}

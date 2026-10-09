@@ -7,25 +7,23 @@ import type { UiSettings } from "../script";
 import { durations, ease, layout, sec } from "../tokens";
 import type { SubmitState } from "../ui/state";
 import { WebSubmitScreen } from "../ui/web/WebSubmitScreen";
-import { DeviceFrame, FootageFrame, TextBlock, frameMode, FOOTAGE_HEADLINE_TOP, useSceneSec, type SceneProps } from "./common";
+import { DeviceFrame, FootageFrame, TextBlock, frameMode, swapProgress, FOOTAGE_HEADLINE_TOP, useSceneSec, type SceneProps } from "./common";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
-// The submit page at time t: links already added, files dropped one by one, each
-// fingerprint shown once the scan line has passed, boxes ticked, Submit → wallet
-// panel → the submitted view ("Submitted · in review", "On time").
-const submitAt = (t: number, ui: UiSettings): SubmitState => {
-  const done = t >= (ui.doneSec ?? 99);
-  return {
-    links: 2,
-    draft: "",
-    files: (ui.files ?? []).filter((f) => t >= f).length,
-    scanned: (ui.scanned ?? []).filter((f) => t >= f).length,
-    checks: t >= (ui.checksSec ?? 99) ? 4 : 0,
-    panel: !done && t >= (ui.panelSec ?? 99) ? "sign" : "closed",
-    done,
-  };
-};
+// The submit page at time t: links and "Done when" ticks already in place, files
+// dropped one by one, each fingerprint shown once the scan line has passed it.
+const formAt = (t: number, ui: UiSettings): SubmitState => ({
+  links: 2,
+  draft: "",
+  files: (ui.files ?? []).filter((f) => t >= f).length,
+  scanned: (ui.scanned ?? []).filter((f) => t >= f).length,
+  checks: 4,
+  panel: "closed",
+  done: false,
+});
+// The submitted view ("Submitted · in review", "On time").
+const DONE: SubmitState = { links: 2, draft: "", files: 2, scanned: 2, checks: 4, panel: "closed", done: true };
 
 // ref-05 look: the page in a scan frame (four corner brackets); a thin purple
 // scan line passes over the dropped files and leaves their short codes.
@@ -50,9 +48,15 @@ export const Scene06Submit: React.FC<SceneProps> = (props) => {
           rotateY={-5}
           outside={<CornerBrackets opacity={brackets} />}
           overlay={<ScanLine atSec={scanAt} height={layout.laptop.h} />}
-        >
-          <WebSubmitScreen state={submitAt(t, scene.ui)} width={1440} height={2600} />
-        </DeviceFrame>
+          layers={[
+            { node: <WebSubmitScreen state={formAt(t, scene.ui)} width={1440} height={2600} />, camera: scene.ui.camera },
+            {
+              node: <WebSubmitScreen state={DONE} width={1440} height={2600} />,
+              camera: scene.ui.swapCamera ?? scene.ui.camera,
+              opacity: swapProgress(t, scene.ui.swapSec),
+            },
+          ]}
+        />
         <TextBlock scene={scene} placement="column" width={layout.laptop.left - layout.textLeft - 60} />
       </AbsoluteFill>
     );

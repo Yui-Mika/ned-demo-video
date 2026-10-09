@@ -1,7 +1,7 @@
 import React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
 import type { CameraKey } from "../script";
-import { ease, video } from "../tokens";
+import { easeTravel, video } from "../tokens";
 
 export type Camera = { zoom: number; x: number; y: number };
 
@@ -13,7 +13,7 @@ export const cameraAt = (keys: CameraKey[], t: number): Camera => {
     const a = keys[i - 1];
     const b = keys[i];
     if (t < b.atSec) {
-      const p = interpolate(t, [a.atSec, b.atSec], [0, 1], { easing: ease });
+      const p = interpolate(t, [a.atSec, b.atSec], [0, 1], { easing: easeTravel });
       return { zoom: a.zoom + (b.zoom - a.zoom) * p, x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p };
     }
   }
@@ -33,17 +33,18 @@ type Props = {
   window: { w: number; h: number }; // the visible window inside the frame
   camera: CameraKey[];
   children: React.ReactNode; // flat DOM screen at native size, plus overlays in native px
+  transparent?: boolean; // no background (the cursor layer)
 };
 
 // A zoom crop of a flat UI screen: renders at native size, then scales and pans
 // so the active area fills the window and key text is readable at 1080p.
-export const DeviceView: React.FC<Props> = ({ native, window: win, camera, children }) => {
+export const DeviceView: React.FC<Props> = ({ native, window: win, camera, children, transparent = false }) => {
   const frame = useCurrentFrame();
   const cam = cameraAt(camera, frame / video.fps);
   const tx = offset(win.w, native.w, cam.zoom, cam.x);
   const ty = offset(win.h, native.h, cam.zoom, cam.y);
   return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#F4F4F6" }}>
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: transparent ? "transparent" : "#F4F4F6" }}>
       <div
         style={{
           position: "absolute",

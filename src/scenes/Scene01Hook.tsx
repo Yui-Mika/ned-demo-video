@@ -1,20 +1,24 @@
-import React from "react";
+import React, { useContext } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import { Backdrop } from "../components/Backdrop";
-import { ease, SAFE, sec, type as typeScale } from "../tokens";
+import { ease, easeTravel, SAFE, sec, type as typeScale, video } from "../tokens";
+import { SceneLength } from "./time";
 import { FootageFrame, TextBlock, type SceneProps } from "./common";
 
 const HOOK = typeScale.hookSize + 16;
 
 // ref-01 look: dim, blurred blank cards drifting in perspective behind the text.
+// `speed` is px per frame at 30 fps; the drift is eased over the scene (no linear motion).
 const GhostCard: React.FC<{ x: number; y: number; w: number; h: number; r: number; speed: number }> = ({ x, y, w, h, r, speed }) => {
   const frame = useCurrentFrame();
+  const len = useContext(SceneLength);
+  const d = interpolate(frame / video.fps, [0, len], [0, len * 30], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: easeTravel });
   return (
     <div
       style={{
         position: "absolute",
-        left: x + frame * speed,
-        top: y - frame * speed * 0.4,
+        left: x + d * speed,
+        top: y - d * speed * 0.4,
         width: w,
         height: h,
         borderRadius: 18,
@@ -44,7 +48,7 @@ export const Scene01Hook: React.FC<SceneProps> = (props) => {
     extrapolateRight: "clamp",
     easing: ease,
   });
-  const enter = interpolate(frame, [sec(0.1), sec(0.9)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const enter = interpolate(frame, [sec(0.1), sec(0.9)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease });
   return (
     <AbsoluteFill>
       <Backdrop theme="dark" glow={0.7} glowY={props.footageExists ? 100 : 70} />

@@ -65,6 +65,7 @@ export const GlassPill: React.FC<{ children: React.ReactNode; style?: React.CSSP
 // passing top to bottom over the footage.
 export const ScanLine: React.FC<{ atSec: number; height: number }> = ({ atSec, height }) => {
   const frame = useCurrentFrame();
+  // The one linear motion in the video: the scan band moves at a constant speed.
   const p = interpolate(frame, [sec(atSec), sec(atSec + durations.scanPass)], [0, 1], clamp);
   if (p <= 0 || p >= 1) return null;
   const y = -0.12 * height + p * 1.12 * height;
