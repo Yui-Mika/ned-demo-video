@@ -1,7 +1,8 @@
 import React from "react";
-import { AbsoluteFill, Html5Audio, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Html5Audio, interpolate, Sequence, staticFile } from "remotion";
 import assets from "./assets.json";
-import { scenes, type Scene } from "./script";
+import { scenes as originalScenes, type Scene } from "./script";
+import { FPS, ORIGINAL_FPS, retime, SceneScale, useSceneFrame, type Retimed } from "./time";
 import { buildCues } from "./cues";
 import { audio, colors, durations, sec } from "./tokens";
 import { Subtitles } from "./components/Subtitles";
@@ -26,6 +27,10 @@ type Assets = {
 };
 const found = assets as Assets;
 
+// Scenes on the stretched timeline (src/time.ts); content and in-scene timings unchanged.
+const scenes = retime(originalScenes);
+const outFrames = (s: number) => Math.round(s * FPS);
+
 const components: Record<string, React.FC<SceneProps>> = {
   scene01: Scene01Hook,
   scene02: Scene02Wordmark,
@@ -39,12 +44,12 @@ const components: Record<string, React.FC<SceneProps>> = {
   scene10: Scene10EndCard,
 };
 
-const XF = sec(durations.crossfade);
+const XF = sec(durations.crossfade); // in original 30 fps frames
 
 // Each scene after the first fades in over the previous one, which keeps
-// playing underneath for the length of the dissolve.
+// playing underneath for the length of the dissolve (stretched with the incoming scene).
 const SceneSlot: React.FC<{ scene: Scene; first: boolean }> = ({ scene, first }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const Comp = components[scene.id];
   const opacity = first ? 1 : interpolate(frame, [0, XF], [0, 1], { extrapolateRight: "clamp" });
   return (
@@ -59,11 +64,11 @@ const voWindows = scenes
   .filter((s) => found.vo[s.id]?.exists)
   .map((s) => {
     const len = found.vo[s.id].durationSec ?? s.endSec - s.startSec;
-    return [sec(s.startSec), sec(s.startSec + len)] as const;
+    return [outFrames(s.startSec), outFrames(s.startSec + len)] as const;
   });
 
 const musicVolume = (f: number) => {
-  const ramp = sec(durations.duckRamp);
+  const ramp = outFrames(durations.duckRamp);
   let duck = 0;
   for (const [a, b] of voWindows) {
     duck = Math.max(duck, interpolate(f, [a - ramp, a, b, b + ramp], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
@@ -77,12 +82,15 @@ export const Teaser: React.FC<TeaserProps> = ({ burnSubtitles }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: colors.night }}>
       {scenes.map((s, i) => {
-        const from = sec(s.startSec);
-        const last = i === scenes.length - 1;
-        const dur = sec(s.endSec - s.startSec) + (last ? 0 : XF);
+        const from = outFrames(s.startSec);
+        const next: Retimed<Scene> | undefined = scenes[i + 1];
+        // Stay on screen under the next scene for its (stretched) dissolve.
+        const dur = outFrames(s.endSec - s.startSec) + (next ? Math.round((XF * next.scale * FPS) / ORIGINAL_FPS) : 0);
         return (
-          <Sequence key={s.id} from={from} durationInFrames={dur} name={`${s.id} · ${s.name}`} premountFor={30}>
-            <SceneSlot scene={s} first={i === 0} />
+          <Sequence key={s.id} from={from} durationInFrames={dur} name={`${s.id} · ${s.name}`} premountFor={60}>
+            <SceneScale.Provider value={s.scale}>
+              <SceneSlot scene={s} first={i === 0} />
+            </SceneScale.Provider>
           </Sequence>
         );
       })}
@@ -90,7 +98,7 @@ export const Teaser: React.FC<TeaserProps> = ({ burnSubtitles }) => {
       {found.music ? <Html5Audio src={staticFile("audio/music.mp3")} volume={musicVolume} /> : null}
       {scenes.map((s) =>
         found.vo[s.id]?.exists ? (
-          <Sequence key={`vo-${s.id}`} from={sec(s.startSec)} name={`VO ${s.id}`} layout="none">
+          <Sequence key={`vo-${s.id}`} from={outFrames(s.startSec)} name={`VO ${s.id}`} layout="none">
             <Html5Audio src={staticFile(`audio/vo/${s.id}.mp3`)} volume={audio.voVolume} />
           </Sequence>
         ) : null,

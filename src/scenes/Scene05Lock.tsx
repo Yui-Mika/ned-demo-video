@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { durations, ease, sec } from "../tokens";
 import { ContractLockScreen } from "../ui/phone/ContractLockScreen";
@@ -11,7 +12,7 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 // ref-09 look: close on the slider while the cursor slides "Slide to lock", then
 // the locked screen ("Locked ≈ 13,010,000 VND", example, estimated).
 export const Scene05Lock: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

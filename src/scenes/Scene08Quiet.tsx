@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { ease, layout, sec } from "../tokens";
 import { ContractAnyoneActionScreen } from "../ui/phone/ContractAnyoneActionScreen";
@@ -19,7 +20,7 @@ const SIDE_SCALE = 0.7;
 
 // ref-08 look: a large glow swells and the devices slide in from below.
 export const Scene08Quiet: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

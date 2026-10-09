@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { Chip, useAppear } from "../components/Bits";
 import { endCard, WORDMARK } from "../script";
@@ -51,7 +52,7 @@ const LinkCard: React.FC<{ title: string; url: string; badge: string; atSec: num
 // End card (BRIEF 7.2): dark #06060E with the purple glow, wordmark as text,
 // headline, two link cards, honesty chip, footer. No third card, no logo file.
 export const Scene10EndCard: React.FC<SceneProps> = ({ scene }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const wIn = interpolate(frame, [sec(0.2), sec(1.2)], [0, 1], { ...clamp, easing: ease });
   const glow = interpolate(frame, [0, sec(1.5)], [0.5, 1.15], clamp);
   const chip = scene.chips?.[0];

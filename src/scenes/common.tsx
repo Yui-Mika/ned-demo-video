@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import type { CameraKey, CursorSettings, Scene } from "../script";
 import { KineticLine } from "../components/KineticLine";
 import { Footage } from "../components/Footage";
@@ -24,7 +25,7 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 export const windowProgress = (t: number, w?: [number, number]) =>
   w ? interpolate(t, w, [0, 1], { ...clamp, easing: ease }) : 0;
 
-export const useSceneSec = () => useCurrentFrame() / video.fps;
+export const useSceneSec = () => useSceneFrame() / video.fps;
 
 // The scene's text: headline beats, then small lines and chips under them.
 // "column": left column at about 20% from the top (device scenes); "top": centred.

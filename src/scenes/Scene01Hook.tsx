@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { ease, SAFE, sec, type as typeScale } from "../tokens";
 import { FootageFrame, TextBlock, type SceneProps } from "./common";
@@ -8,7 +9,7 @@ const HOOK = typeScale.hookSize + 16;
 
 // ref-01 look: dim, blurred blank cards drifting in perspective behind the text.
 const GhostCard: React.FC<{ x: number; y: number; w: number; h: number; r: number; speed: number }> = ({ x, y, w, h, r, speed }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   return (
     <div
       style={{
@@ -38,7 +39,7 @@ const GhostCard: React.FC<{ x: number; y: number; w: number; h: number; r: numbe
 // Hook. Stays abstract (no product UI): the recording if it exists, otherwise
 // only the drifting cards and the two lines, centred inside the safe area.
 export const Scene01Hook: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const push = interpolate(frame, [sec(0.2), sec(1.4), sec(6)], [0.72, 0.95, 1.02], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",

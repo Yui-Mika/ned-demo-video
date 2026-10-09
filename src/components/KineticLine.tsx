@@ -1,5 +1,6 @@
 import React from "react";
-import { interpolate, useCurrentFrame } from "remotion";
+import { interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { colors, durations, ease, fonts, gradients, sec } from "../tokens";
 
 type Props = {
@@ -37,7 +38,7 @@ export const KineticLine: React.FC<Props> = ({
   mode = "rise",
   style,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const words = text.split(" ");
   const start = sec(atSec);
   const stagger = sec(durations.wordStagger);
