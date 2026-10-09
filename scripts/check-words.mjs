@@ -31,6 +31,8 @@ const banned = [
   "may dispute", "unless you dispute", "you never hold crypto", "ned.app",
   // Extra list from the build request
   "automatically", "tự động", "licensed", "cheap", "cheaper", "cheapest", "rẻ",
+  // No call to try the product on screen (end-card label decision, 10 Oct)
+  "try the",
 ];
 
 // Reviewed exceptions: exact phrase on a line -> reason. Kept tiny and explicit.

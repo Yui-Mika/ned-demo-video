@@ -438,7 +438,7 @@ export const release = {
 // Scene 10: end card (BRIEF 7.2). Two link cards, no third card.
 export const endCard = {
   links: [
-    { title: "Xem bản demo (mạng thử)", url: "tdat10052499.github.io/Unihackfest-2026", badge: "Test network" },
+    { title: "View the demo", url: "tdat10052499.github.io/Unihackfest-2026", badge: "Test network" },
     { title: "Open the Workspace", url: "unihackfest-2026.vercel.app", badge: "Test network" },
   ],
   footer: "Built for Unihackfest 2026",

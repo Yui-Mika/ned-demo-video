@@ -10,10 +10,6 @@ import type { SceneProps } from "./common";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
-// A longer label (the Vietnamese one) is set slightly smaller so it stays on one
-// line beside the badge; the card layout does not change.
-const titleSize = (title: string) => (title.length > 20 ? 32 : 36);
-
 const LinkCard: React.FC<{ title: string; url: string; badge: string; atSec: number }> = ({ title, url, badge, atSec }) => {
   const a = useAppear(atSec, 0.6, 24);
   return (
@@ -32,7 +28,7 @@ const LinkCard: React.FC<{ title: string; url: string; badge: string; atSec: num
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: titleSize(title), color: colors.white, whiteSpace: "nowrap" }}>{title}</div>
+        <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 36, color: colors.white, whiteSpace: "nowrap" }}>{title}</div>
         <div
           style={{
             fontFamily: fonts.display,
