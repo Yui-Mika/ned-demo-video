@@ -1,12 +1,13 @@
 import React from "react";
-import { interpolate, useCurrentFrame } from "remotion";
+import { interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { colors, durations, ease, fonts, gradients, sec, video } from "../tokens";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 // Fade + small rise for supporting elements (chips, small lines, cards).
 export const useAppear = (atSec: number, lenSec = durations.fade, rise = 16) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const p = interpolate(frame, [sec(atSec), sec(atSec + lenSec)], [0, 1], { ...clamp, easing: ease });
   return { opacity: p, transform: `translateY(${(1 - p) * rise}px)` };
 };
@@ -64,7 +65,7 @@ export const GlassPill: React.FC<{ children: React.ReactNode; style?: React.CSSP
 // Thin purple scan line with a trailing band (about 12% of the frame height),
 // passing top to bottom over the footage.
 export const ScanLine: React.FC<{ atSec: number; height: number }> = ({ atSec, height }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const p = interpolate(frame, [sec(atSec), sec(atSec + durations.scanPass)], [0, 1], clamp);
   if (p <= 0 || p >= 1) return null;
   const y = -0.12 * height + p * 1.12 * height;
@@ -109,4 +110,4 @@ export const CornerBrackets: React.FC<{ opacity: number; gap?: number; len?: num
 };
 
 // Seconds since the scene started (inside a Sequence).
-export const useSceneSec = () => useCurrentFrame() / video.fps;
+export const useSceneSec = () => useSceneFrame() / video.fps;

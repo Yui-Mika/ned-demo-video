@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { durations, ease, layout, sec } from "../tokens";
 import { copy } from "../ui/copy";
@@ -25,7 +26,7 @@ const briefAt = (t: number, typing: [number, number][]): BriefState => {
 // ref-04 look: the window rises under the sentence; the web contract editor
 // types the "Done when" items, the brief fingerprint changes per keystroke.
 export const Scene03Brief: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

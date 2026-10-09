@@ -1,7 +1,8 @@
 import React from "react";
-import { AbsoluteFill, OffthreadVideo, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, OffthreadVideo, staticFile } from "remotion";
+import { FPS, useSceneFrame, useSceneScale } from "../time";
 import type { FootageSettings } from "../script";
-import { colors, fonts, video } from "../tokens";
+import { colors, fonts } from "../tokens";
 
 // Trimmed landing-page recording, or a clearly marked placeholder when the
 // file is missing, so the render never fails.
@@ -10,15 +11,17 @@ export const Footage: React.FC<{ sceneNum: number; settings: FootageSettings; ex
   settings,
   exists,
 }) => {
+  // Time dilation: the clip plays slower by the scene scale, so it still spans the scene.
+  const scale = useSceneScale();
   if (exists) {
     const { startSec, endSec, playbackRate } = settings;
     return (
       <AbsoluteFill>
         <OffthreadVideo
           src={staticFile(settings.file)}
-          trimBefore={Math.round(startSec * video.fps)}
-          durationInFrames={Math.max(1, Math.round((endSec - startSec) * video.fps))}
-          playbackRate={playbackRate}
+          trimBefore={Math.round(startSec * FPS)}
+          durationInFrames={Math.max(1, Math.round((endSec - startSec) * scale * FPS))}
+          playbackRate={playbackRate / scale}
           muted
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
@@ -29,7 +32,7 @@ export const Footage: React.FC<{ sceneNum: number; settings: FootageSettings; ex
 };
 
 const Placeholder: React.FC<{ sceneNum: number; settings: FootageSettings }> = ({ sceneNum, settings }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const x = 50 + 18 * Math.sin(frame / 40);
   const nn = String(sceneNum).padStart(2, "0");
   return (

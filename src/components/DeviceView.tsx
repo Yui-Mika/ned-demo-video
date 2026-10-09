@@ -1,5 +1,6 @@
 import React from "react";
-import { interpolate, useCurrentFrame } from "remotion";
+import { interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import type { CameraKey } from "../script";
 import { ease, video } from "../tokens";
 
@@ -38,7 +39,7 @@ type Props = {
 // A zoom crop of a flat UI screen: renders at native size, then scales and pans
 // so the active area fills the window and key text is readable at 1080p.
 export const DeviceView: React.FC<Props> = ({ native, window: win, camera, children }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const cam = cameraAt(camera, frame / video.fps);
   const tx = offset(win.w, native.w, cam.zoom, cam.x);
   const ty = offset(win.h, native.h, cam.zoom, cam.y);
@@ -61,4 +62,4 @@ export const DeviceView: React.FC<Props> = ({ native, window: win, camera, child
   );
 };
 
-export const useCamera = (keys: CameraKey[]) => cameraAt(keys, useCurrentFrame() / video.fps);
+export const useCamera = (keys: CameraKey[]) => cameraAt(keys, useSceneFrame() / video.fps);

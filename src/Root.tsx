@@ -2,7 +2,10 @@ import React from "react";
 import { Composition } from "remotion";
 import { Teaser, type TeaserProps } from "./Teaser";
 import { scenes } from "./script";
-import { sec, video } from "./tokens";
+import { video } from "./tokens";
+import { FPS, retime } from "./time";
+
+const timeline = retime(scenes);
 
 import { Atlas } from "./dev/Atlas";
 import { Probe, PROBE } from "./dev/Probe";
@@ -18,8 +21,8 @@ export const RemotionRoot: React.FC = () => (
     component={Teaser}
     width={video.width}
     height={video.height}
-    fps={video.fps}
-    durationInFrames={sec(scenes[scenes.length - 1].endSec)}
+    fps={FPS}
+    durationInFrames={Math.round(timeline[timeline.length - 1].endSec * FPS)}
     defaultProps={{ burnSubtitles: false } satisfies TeaserProps}
   />
   </>

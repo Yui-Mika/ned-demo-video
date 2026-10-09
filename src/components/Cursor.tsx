@@ -1,5 +1,6 @@
 import React from "react";
-import { interpolate, useCurrentFrame } from "remotion";
+import { interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import type { CursorSettings } from "../script";
 import { durations, ease, video } from "../tokens";
 
@@ -52,7 +53,7 @@ export const Cursor: React.FC<{ settings: CursorSettings; width: number; height:
   height,
   size = 46,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = frame / video.fps;
   const { pos, pressed, presses } = cursorState(settings, t);
   const firstMove = Math.max(0, (settings.targets[0]?.atSec ?? 0) - durations.cursorTravel - 0.3);

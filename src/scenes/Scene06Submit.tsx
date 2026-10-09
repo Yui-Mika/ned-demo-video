@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { CornerBrackets, ScanLine } from "../components/Bits";
 import { FRAME_ASPECT } from "../components/PerspectiveFrame";
@@ -30,7 +31,7 @@ const submitAt = (t: number, ui: UiSettings): SubmitState => {
 // ref-05 look: the page in a scan frame (four corner brackets); a thin purple
 // scan line passes over the dropped files and leaves their short codes.
 export const Scene06Submit: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

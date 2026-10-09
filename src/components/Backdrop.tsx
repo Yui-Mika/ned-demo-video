@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill } from "remotion";
+import { useSceneFrame } from "../time";
 import { colors } from "../tokens";
 import type { Theme } from "../script";
 
@@ -11,7 +12,7 @@ export const Backdrop: React.FC<{ theme: Theme; glow?: number; glowY?: number }>
   glow = 1,
   glowY = 100,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const pulse = 1 + 0.06 * Math.sin(frame / 22);
   const drift = 4 * Math.sin(frame / 37);
 

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { scenes } from "../src/script.ts";
 import { buildCues, toSrt } from "../src/cues.ts";
+import { retime } from "../src/time.ts";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 let vo = {};
@@ -13,7 +14,7 @@ try {
 } catch {
   // assets.json missing: cues fill each scene
 }
-const cues = buildCues(scenes, vo);
+const cues = buildCues(retime(scenes), vo); // stretched timeline (src/time.ts)
 mkdirSync(path.join(root, "out"), { recursive: true });
 writeFileSync(path.join(root, "out", "subtitles.vi.srt"), toSrt(cues), "utf8");
 console.log(`make-srt: ${cues.length} cues -> out/subtitles.vi.srt`);

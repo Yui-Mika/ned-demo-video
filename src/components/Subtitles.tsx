@@ -1,11 +1,12 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import type { Cue } from "../cues";
 import { fonts, SAFE, type as typeScale, video } from "../tokens";
 
 // Burned-in Vietnamese subtitles (only when the burnSubtitles prop is true).
 export const Subtitles: React.FC<{ cues: Cue[] }> = ({ cues }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = frame / video.fps;
   const cue = cues.find((c) => t >= c.startSec && t < c.endSec);
   if (!cue) return null;

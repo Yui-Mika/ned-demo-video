@@ -11,9 +11,9 @@
     "prep": "npm run check:words && npm run scan && npm run srt",
     "studio": "npm run prep && remotion studio src/index.ts",
     "stills": "npm run prep && node --experimental-strip-types --no-warnings scripts/stills.mjs",
-    "render:preview": "npm run prep && remotion render src/index.ts Teaser out/preview-960x540.mp4 --scale=0.5 --codec=h264 --audio-codec=aac --enforce-audio-track",
-    "render": "npm run prep && remotion render src/index.ts Teaser out/ned-teaser-60s.mp4 --codec=h264 --audio-codec=aac --enforce-audio-track",
-    "render:subs": "npm run prep && remotion render src/index.ts Teaser out/ned-teaser-60s-subs.mp4 --codec=h264 --audio-codec=aac --enforce-audio-track --props={\\\"burnSubtitles\\\":true}",
+    "render:preview": "npm run prep && node scripts/render.mjs preview",
+    "render": "npm run prep && node scripts/render.mjs full",
+    "render:subs": "npm run prep && node scripts/render.mjs subs",
     "probe": "remotion ffprobe -v error -show_entries format=duration:stream=codec_type,codec_name,width,height,r_frame_rate -of compact",
     "typecheck": "tsc --noEmit"
   },

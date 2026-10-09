@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { durations, sec } from "../tokens";
 import { DisclosuresScreen } from "../ui/phone/DisclosuresScreen";
@@ -12,7 +13,7 @@ const linear = (t: number, w?: [number, number]) => (w ? interpolate(t, w, [0, 1
 // the disclosure text (BRIEF 5, SPEC 14.4 wins over the reference's blur reveal).
 // The Disclosures list scrolls and the NOT YET rows light, both from the frame number.
 export const Scene09Status: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

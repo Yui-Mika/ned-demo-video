@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { durations, ease, sec } from "../tokens";
 import { ContractAcceptScreen } from "../ui/phone/ContractAcceptScreen";
@@ -10,7 +11,7 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 // ref-06 look: a big tilted device, slow tilt and drift. Accept screen: the cursor
 // taps the VND option, then slides "Slide to accept".
 export const Scene04Accept: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

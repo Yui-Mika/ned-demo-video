@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { GlassPill } from "../components/Bits";
 import { release } from "../script";
@@ -23,7 +24,7 @@ const Count: React.FC<{ fromX: number; toX: number; seamX: number; top: number; 
   width,
   size,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const { pillAtSec, crossAtSec } = release;
   const pillIn = interpolate(frame, [sec(pillAtSec), sec(pillAtSec + 0.4)], [0, 1], { ...clamp, easing: ease });
   const cross = interpolate(frame, [sec(crossAtSec), sec(crossAtSec + 0.6)], [0, 1], { ...clamp, easing: ease });
@@ -83,7 +84,7 @@ const Count: React.FC<{ fromX: number; toX: number; seamX: number; top: number; 
 // screen follows, then (ref-10 look) the glossy pill crosses the seam into the
 // big VND count. Glow on the landing layer only.
 export const Scene07Release: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const t = useSceneSec();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);

@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate } from "remotion";
+import { useSceneFrame } from "../time";
 import { Backdrop } from "../components/Backdrop";
 import { WORDMARK } from "../script";
 import { colors, ease, fonts, gradients, layout, SAFE, sec, type as typeScale } from "../tokens";
@@ -34,7 +35,7 @@ const Wordmark: React.FC<{ opacity: number; scale: number; origin: string }> = (
 // ref-02 look: purple sweep (dark to light), wordmark as text over the glow, then
 // the headline; Home on the phone enters after the sweep.
 export const Scene02Wordmark: React.FC<SceneProps> = (props) => {
-  const frame = useCurrentFrame();
+  const frame = useSceneFrame();
   const { scene } = props;
   const mode = frameMode(scene, props.footageExists);
 
